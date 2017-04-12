@@ -8,7 +8,7 @@ import numpy as np
 ###DEBUG
 import pdb
 
-def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
+def collect_data(FILE = 'map.xml', max_size = 1000000):
     '''
     This function collects all required data out of an OpenStreetMap-like XML-file **FILE**.
     (correct path to it) and returns the following:
@@ -20,8 +20,6 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
         - **area_lats** dictionary in form {..., postal_code: [node1_lat, node2_lat, ..], ... }
         - **area_lons** dictionary in form {..., postal_code: [node1_lon, node2_lon, ..], ... }
     It parses the XML-code incrementally in character bunches of length **max_size**.
-    If csv output is wanted, it creates a new directory csv_%time with including files bounds.csv, cameras.csv, street_nodes.csv,
-    streets.csv, areas.csv, area_lats.csv, area_lons.csv.
     '''
 
     # init return Data-Types
@@ -39,56 +37,11 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
     street_nodes_set = set()            # collect all node_ids that define any street in a set
     area_ways_set = set()               # collect all way_ids that define any postal area border in a set
 
-    # get current time
-    time_now = time.strftime('%d.%m.%Y_%H.%M.%S')
-
     # init parser
     parser = et.XMLPullParser(['start','end'])
 
     try:
-        if csv_output:
-            # set paths of the output files
-            head, tail = os.path.split(FILE)
-            out_dir = os.path.join(head, 'csv_%s' % time_now)
-            print('outdir:\t %s' % out_dir)
-            if not os.path.isdir(out_dir):
-                os.mkdir(out_dir)
-            csv_files = map( lambda x: os.path.join(out_dir, x),
-                             ['bounds.csv', 'cameras.csv', 'street_nodes.csv', 'streets.csv', 'areas.csv',
-                              'area_nodes.csv', 'area_lats.csv', 'area_lons.csv'] )
-        else:
-            csv_files = None
         with open(FILE, 'r') as read_file:
-            for csv_file in csv_files:
-                # open files to write
-                head, tail = os.path.split(csv_file)
-                if tail == 'bounds.csv':
-                    bound_file = open(csv_file, 'w')
-                if tail == 'cameras.csv':
-                    camera_file = open(csv_file, 'w')
-                if tail == 'street_nodes.csv':
-                    street_node_file = open(csv_file, 'w')
-                if tail == 'streets.csv':
-                    street_file = open(csv_file, 'w')
-                if tail == 'areas.csv':
-                    area_file = open(csv_file, 'w')
-                if tail == 'area_nodes.csv':
-                    area_node_file = open(csv_file, 'w')
-                if tail == 'area_lats.csv':
-                    area_lat_file = open(csv_file, 'w')
-                if tail == 'area_lons.csv':
-                    area_lon_file = open(csv_file, 'w')
-
-            if csv_output:
-                # init csv files to write
-                bounds_csv = csv.writer(bound_file, delimiter=',')
-                camera_csv = csv.writer(camera_file, delimiter=',')
-                street_node_csv = csv.writer(street_node_file, delimiter=',')
-                street_csv = csv.writer(street_file, delimiter=',')
-                area_csv = csv.writer(area_file, delimiter=',')
-                area_node_csv = csv.writer(area_node_file, delimiter=',')
-                area_lat_csv = csv.writer(area_lat_file, delimiter=',')
-                area_lon_csv = csv.writer(area_lon_file, delimiter=',')
 
             # init parsing variables
             root = None
@@ -113,10 +66,8 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
 
                 # iterate through all parsed elements
                 for event, elem in parser.read_events():
-
                     if root is None:
                         root = elem
-
                     # get bounds of the given map excerpt
                     if elem.tag == 'bounds':
                         if event == "end":
@@ -125,9 +76,6 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
                                 bounds[key] = elem.attrib[key]
                                 test_func = None
                                 output.append(elem.attrib[key])
-                            if csv_output:
-                                bounds_csv.writerow(list(output))
-                                bound_file.close()
                     # process all node tags with _get_camera
                     if elem.tag == 'node':
                         test_func = _get_camera
@@ -167,8 +115,7 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
                                 if is_cam:
                                     assert(id not in cameras)
                                     cameras[id] = coordinates
-                                    if csv_output:
-                                        camera_csv.writerow(list(output[1:]))
+
                             # in case of a way tag:
                             elif case_dict == streets:
                                 is_highway = output[0]
@@ -185,8 +132,7 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
                                     streets[id] = info + way_nodes
                                     # collect all nodes which are defining a street in the street_nodes set
                                     street_nodes_set.update(set(way_nodes))
-                                    if csv_output:
-                                        street_csv.writerow(list(output[1:]))
+
                                 # otherwise save only its nodes in ways dict
                                 else:
                                     ways[id] = way_nodes
@@ -201,8 +147,7 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
                                 postal_areas[postal_code] = postal_ways
                                 # collect all ways which are defining a postal area in the area_ways set
                                 area_ways_set.update(set(postal_ways))
-                                if csv_output:
-                                    area_csv.writerow(list(output))
+
 
                             print('\t \t \t NEW POS: \t %s' % read_file.tell())
 
@@ -219,9 +164,7 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
         # save only coordinates of those nodes that are part of a street (and optional save it to file)
         street_nodes = { node_id: nodes[node_id] for node_id in street_nodes_set }
         street_nodes_set.clear()
-        if csv_output:
-            for (node_id, coords) in street_nodes.items():
-                street_node_csv.writerow([node_id] + list(coords) )
+
 
         ###DEBUG
         pdb.set_trace()
@@ -250,9 +193,6 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
         # collect coordinates to all area nodes in dict
         area_nodes = { node_id: nodes[node_id] for node_id in area_nodes_set }
         area_nodes_set.clear()
-        if csv_output:
-            for (node_id, coords) in area_nodes.items():
-                area_node_csv.writerow([node_id] + list(coords))
 
         ###DEBUG
         pdb.set_trace()
@@ -273,20 +213,6 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
                     way_lons.append(np.float_(node_lon))
             area_lats[postal_code] = way_lats
             area_lons[postal_code] = way_lons
-
-            if csv_output:
-                area_lat_csv.writerow([postal_code] + list(way_lats))
-                area_lon_csv.writerow([postal_code] + list(way_lons))
-
-        # close all opened files
-        if csv_output:
-            camera_file.close()
-            street_node_file.close()
-            street_file.close()
-            area_file.close()
-            area_node_file.close()
-            area_lat_file.close()
-            area_lon_file.close()
 
         # return required data
         return bounds, cameras, street_nodes_dict, streets, postal_areas, area_nodes, area_lats, area_lons
