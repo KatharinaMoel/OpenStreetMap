@@ -4,7 +4,7 @@ import time
 
 class Streets(object):
 
-    def __init__(self, bounds, streets, node_coords):
+    def __init__(self, bounds, streets, node_coords, add_length = True):
         # street_info = {..., street_id: [street_type, is_oneway, street_postal_code, street_name], ...}
         street_info = {street_id: streets[street_id][:4] for street_id in streets.keys()}
         # street_nodes = {..., street_id: [node1, node2, ..], ...}
@@ -29,6 +29,10 @@ class Streets(object):
         # save min/ max coordinates of the map excerpt
         self.minlat, self.minlon =  np.float_(bounds['minlat']), np.float_(bounds['minlon'])
         self.maxlat, self.maxlon =  np.float_(bounds['maxlat']), np.float_(bounds['maxlon'])
+        # optional: add column with street lengths to the street_data dataframe
+        if add_length:
+            self.street_data['lengths'] = self.street_data.index
+            self.street_data['lengths'] = self.street_data['lengths'].apply(lambda x: self.get_street_length(x))
 
     def get_street_coords(self, street_id, as_lists = False):
         '''
@@ -55,6 +59,18 @@ class Streets(object):
             street_coords = [lat_coords, lon_coords]
         return street_coords
 
+    def get_street_length(self, street_id):
+        '''
+        Compute and return the length of a street with id street_id.
+        '''
+        coords = self.get_street_coords(street_id)
+        street_length = 0
+        for n in range( len(coords)-1 ):
+            diff_coords = np.subtract(np.float_(coords[n+1]), np.float_(coords[n]))
+            path_length = np.sqrt( diff_coords[0]**2 + diff_coords[0]**2 )
+            street_length += path_length
+        return street_length
+
 #############################################################################################################################
 
 if __name__== '__main__':
@@ -78,7 +94,7 @@ if __name__== '__main__':
     ###DEBUG
     pdb.set_trace()
 
-    test = Streets(bounds, streets, node_coords)
+    test = Streets(bounds, streets, node_coords, add_length = True)
     #test_part = {k: test.street_nodes[k] for k in list(test.street_nodes.keys())[:10]}
 
     print('\n')
