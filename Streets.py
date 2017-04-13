@@ -30,6 +30,31 @@ class Streets(object):
         self.minlat, self.minlon =  np.float_(bounds['minlat']), np.float_(bounds['minlon'])
         self.maxlat, self.maxlon =  np.float_(bounds['maxlat']), np.float_(bounds['maxlon'])
 
+    def get_street_coords(self, street_id, as_lists = False):
+        '''
+        default: return single list of coordinate tuples for a single street with id way_id.
+        if as_lists = True: return a list of two lists (separate lat-coordinates resp. lon-coordinates) for a single street with id way_id. '''
+        assert(street_id in self.street_nodes)
+        way_nodes = self.street_nodes[street_id]
+        street_coords = []
+        if as_lists:
+            lat_coords = []
+            lon_coords = []
+        for node_id in way_nodes:
+            if node_id in self.node_coords:
+                node_lat, node_lon = self.node_coords[node_id]
+            else:
+                print('NO NODE ID in Node Coords: %s' %node_id)
+                node_lat, node_lon = 0, 0
+            if as_lists:
+                lat_coords.append(node_lat)
+                lon_coords.append(node_lon)
+            else:
+                street_coords.append( (node_lat, node_lon) )
+        if as_lists:
+            street_coords = [lat_coords, lon_coords]
+        return street_coords
+
 #############################################################################################################################
 
 if __name__== '__main__':
@@ -38,7 +63,7 @@ if __name__== '__main__':
     import pdb
 
     from Data import Data
-    new_data = Data()
+    new_data = Data(csv_dir='./csv/')
 
     bounds, streets, node_coords = new_data.get_streets()
     print('bounds:')
@@ -53,8 +78,11 @@ if __name__== '__main__':
     ###DEBUG
     pdb.set_trace()
 
-    test = Streets(bounds, streets, node_coords, add_length = True)
+    test = Streets(bounds, streets, node_coords)
+    #test_part = {k: test.street_nodes[k] for k in list(test.street_nodes.keys())[:10]}
 
+    print('\n')
     print(test.street_data.head(10))
+
 
 
