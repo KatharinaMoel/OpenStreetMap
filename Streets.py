@@ -102,6 +102,78 @@ class Streets(object):
         stat_row = self.street_data.loc[stat_idx, :]
         return stat_value, stat_idx, stat_row
 
+    def plot(self, dpi = 200):
+        counter = 0
+        count_file = 0
+        plt.rc('lines', linewidth=0.1, color='black')
+        fig = plt.figure()
+        fig_plot = fig.add_subplot(1, 1, 1)
+        fig_plot.axis([0, 0.5, 0, 0.2])
+        fig_plot.axis('off')
+        node_total = len(self.street_nodes)
+        print('========================= NODE TOTAL: %s' % node_total)
+        # get current time
+        time_now = time.strftime('%d.%m.%Y_%H.%M.%S')
+        for street_id in self.street_nodes:
+            counter += 1
+            x_coords = []
+            y_coords = []
+            for (lat, lon) in self.get_street_coords(street_id):
+                print((lat, lon))
+                (y_0, x_0) = (np.float_(lat) - self.minlat, np.float_(lon) - self.minlon)
+                x_coords.append(x_0)
+                y_coords.append(y_0)
+                # compute back lists of separate coords
+                fig_plot.plot(x_coords , y_coords, color = 'k')
+                print(counter)
+            if counter >= 10000:
+                plt.savefig(('street-layer_%s_%s.png' % (time_now, count_file)),
+                                dpi = dpi, linewith = 1, frameon=False, transparent = True)
+                plt.close()
+                fig = plt.figure()
+                fig_plot = fig.add_subplot(1, 1, 1)
+                fig_plot.axis('off')
+                fig_plot.axis([0, 0.5, 0, 0.2])
+                count_file +=1
+                counter = 0
+            processed_nodes_count = counter + (count_file * 10000)
+            print('>>>>> PROCESSED: %s' % processed_nodes_count)
+            if processed_nodes_count == node_total:
+                fig.savefig( ('street-layer_%s_%s.png' % (time_now, count_file)),
+                                dpi = dpi, linewith = 1, frameon=False, transparent = False )   # bbox_inches='tight'
+                plt.close()
+                break
+        self.merge_plots(time_now, count_file)
+
+    def merge_plots(self, time_now, count_file):
+        # open images
+        src0 = Image.open('street-layer_%s_10.png' % time_now)
+        src1 = Image.open('street-layer_%s_1.png' % time_now)
+        src0.paste(src1, (0, 0), src1)
+        src2 = Image.open('street-layer_%s_2.png' % time_now)
+        src0.paste(src2, (0, 0), src2)
+        src3 = Image.open('street-layer_%s_3.png' % time_now)
+        src0.paste(src3, (0, 0), src3)
+        src4 = Image.open('street-layer_%s_4.png' % time_now)
+        src0.paste(src4, (0, 0), src4)
+        src5 = Image.open('street-layer_%s_5.png' % time_now)
+        src0.paste(src5, (0, 0), src5)
+        src6 = Image.open('street-layer_%s_6.png' % time_now)
+        src0.paste(src6, (0, 0), src6)
+        src7 = Image.open('street-layer_%s_7.png' % time_now)
+        src0.paste(src7, (0, 0), src7)
+        src8 = Image.open('street-layer_%s_8.png' % time_now)
+        src0.paste(src8, (0, 0), src8)
+        src9 = Image.open('street-layer_%s_9.png' % time_now)
+        src0.paste(src9, (0, 0), src9)
+        src10 = Image.open('street-layer_%s_0.png' % time_now)
+        # paste all images into the first
+        src0.paste(src10, (0, 0), src10)
+        src0.save('NEW_PASTE_%s.png' % time_now)
+        # alternatively do the same with merge command
+        srcNEW  = Image.merge('RGB', (src0, src1, src2, src3, src4, src5, src6, src7, src8, src9, src10))
+        srcNEW.save('NEW_MERGE_%s.png' % time_now)
+
     def get_oneway_quota(self, street_type = None):
         if not street_type:
             oneway_data = self.street_data['is_oneway']
@@ -149,5 +221,9 @@ if __name__== '__main__':
     print('\nMax RESIDENTIAL')
     print(test.analyze_street_lengths('max', street_type='residential'))
 
+    ###DEBUG
+    pdb.set_trace()
+
+    test.plot()
 
 
