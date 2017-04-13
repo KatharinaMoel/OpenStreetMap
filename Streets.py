@@ -102,6 +102,17 @@ class Streets(object):
         stat_row = self.street_data.loc[stat_idx, :]
         return stat_value, stat_idx, stat_row
 
+    def get_oneway_quota(self, street_type = None):
+        if not street_type:
+            oneway_data = self.street_data['is_oneway']
+        else:
+            assert(street_type in self.street_types)
+            oneway_data = self.street_data.loc[self.street_data['type'] == street_type]['is_oneway']
+        total_number = len(oneway_data)
+        oneway_number = pd.to_numeric(oneway_data).sum()
+        quota = oneway_number / total_number
+        return quota, oneway_number, total_number
+
 #############################################################################################################################
 
 if __name__== '__main__':
@@ -137,4 +148,6 @@ if __name__== '__main__':
     print(test.analyze_street_lengths('average', street_type='residential'))
     print('\nMax RESIDENTIAL')
     print(test.analyze_street_lengths('max', street_type='residential'))
+
+
 
