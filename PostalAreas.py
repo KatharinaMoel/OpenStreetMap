@@ -28,6 +28,19 @@ class PostalAreas(object):
         # return the containing cubes (by index of postal codes)
         return cubes_to_cam.index
 
+    def get_cams_to_cube(self, postal_code):
+        # get min/ max lat and lon of cube to postal code area
+        cube_min_lat, cube_max_lat = self.cube_lats.ix[postal_code, 'min'], self.cube_lats.ix[postal_code, 'max']
+        cube_min_lon, cube_max_lon = self.cube_lons.ix[postal_code, 'min'], self.cube_lons.ix[postal_code, 'max']
+        # get rows of cameras dataframes that are 'contained' in the cube in one direction (lat resp. lon)
+        cams_to_cube_lats = self.cameras.ix[ (self.cameras['lat'] <= cube_max_lat) & (self.cameras['lat'] >= cube_max_lat) , 'lat']
+        cams_to_cube_lons = self.cameras.ix[ (self.cameras['lon'] <= cube_max_lon) & (self.cameras['lon'] >= cube_max_lon) , 'lon']
+        # get only rows of cameras that are contained in the cube in both lat and lon direction
+        cams_to_cube = cams_to_cube_lats.loc[ cams_to_cube_lats.intersection(cams_to_cube_lons.index) ]
+        # return the contained cameras (by index of its id)
+        return cams_to_cube.index
+
+
 #############################################################################################################################
 
 if __name__ == '__main__':
