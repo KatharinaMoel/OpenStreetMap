@@ -11,10 +11,6 @@ class PostalAreas(object):
         self.area_lats, self.area_lons = area_lats, area_lons
         self.cameras = pd.DataFrame(cameras, index = ['lat', 'lon']).T
         print(self.cameras.head())
-        self.cube_lats = pd.DataFrame( {postal: [ min(self.area_lats[postal]) , max(self.area_lats[postal]) ] for postal in areas.keys()},
-                                       index = ['min', 'max'] ).T
-        self.cube_lons = pd.DataFrame( {postal: [ min(self.area_lons[postal]) , max(self.area_lons[postal]) ] for postal in areas.keys()},
-                                       index = ['min', 'max'] ).T
 
 #############################################################################################################################
 
