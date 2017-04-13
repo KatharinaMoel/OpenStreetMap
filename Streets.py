@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import time
+import matplotlib.pyplot as plt
+from PIL import Image
 
 class Streets(object):
 
@@ -71,6 +73,35 @@ class Streets(object):
             street_length += path_length
         return street_length
 
+    def analyze_street_lengths(self, stat, street_type = None):
+        '''
+        Compute and return a specific statistic of street lengths.
+        stat: which statistic to use, possibilities: 'max', 'min', 'median', 'average'.
+        street_type: optional, compute statistic only for the desired street types.
+        '''
+        assert(stat in ['max', 'min', 'median', 'average'])
+        if not street_type:
+            # use complete list of streets independent of their types
+            length_data = self.street_data['lengths']
+        else:
+            # use only list of streets that are of the given type
+            assert(street_type in self.street_types)
+            print('\nstreet types:\n')
+            print(self.street_types)
+            length_data = self.street_data.loc[ self.street_data['type'] == street_type ]['lengths']
+        # compute desired statistic
+        if stat == 'median':
+            return length_data.median()
+        if stat == 'average':
+            return length_data.mean()
+        if stat == 'max':
+            stat_idx = length_data.idxmax()
+        if stat == 'min':
+            stat_idx = length_data.idxmin()
+        stat_value = length_data[stat_idx]
+        stat_row = self.street_data.loc[stat_idx, :]
+        return stat_value, stat_idx, stat_row
+
 #############################################################################################################################
 
 if __name__== '__main__':
@@ -97,8 +128,13 @@ if __name__== '__main__':
     test = Streets(bounds, streets, node_coords, add_length = True)
     #test_part = {k: test.street_nodes[k] for k in list(test.street_nodes.keys())[:10]}
 
-    print('\n')
     print(test.street_data.head(10))
-
-
+    print('\nMin:')
+    print(test.analyze_street_lengths('min'))
+    print('\nAverage:')
+    print(test.analyze_street_lengths('average'))
+    print('\nAverage RESIDENTIAL:')
+    print(test.analyze_street_lengths('average', street_type='residential'))
+    print('\nMax RESIDENTIAL')
+    print(test.analyze_street_lengths('max', street_type='residential'))
 
