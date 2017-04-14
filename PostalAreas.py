@@ -40,6 +40,19 @@ class PostalAreas(object):
         # return the contained cameras (by index of its id)
         return cams_to_cube.index
 
+    def get_cams_to_areas(self):
+        cams_to_areas = dict.fromkeys( self.areas.keys(), [] )
+        for cam_id in self.cameras:
+            cubes_to_cam = self.get_cubes_to_cam(cam_id)
+            if len(cubes_to_cam) == 1:
+                print('Camera has unique postal code cube, so it must be the postal area!')
+                postal_code = cubes_to_cam[0]
+                cams_to_areas[postal_code].append(postal_code)
+            else:
+                for cube in cubes_to_cam:
+                    # get smallest cube ?
+                    # get cube with smallest diff in one direction?
+
 
 #############################################################################################################################
 
