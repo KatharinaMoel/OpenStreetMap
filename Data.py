@@ -28,7 +28,7 @@ class Data(object):
         return self.cameras
 
     def get_streets(self):
-        street_data = self.bounds, self.streets, self.nodes
+        street_data = self.bounds, self.streets, self.street_nodes
         return street_data
 
     def get_areas(self):

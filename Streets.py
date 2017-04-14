@@ -14,13 +14,14 @@ class Streets(object):
         self.street_data = pd.DataFrame(street_info, index = ['type', 'is_oneway', 'postal_code', 'name']).T
         # collect all possible street types in a set
         self.street_types = set(self.street_data['type'])
+        self.street_nodes = street_nodes
         # collect all nodes that define any street in a set
-        self.street_nodes = set()
-        for node_list in self.streets.values():
-            self.street_nodes.update(node_list)
+        self.street_nodes_set = set()
+        for node_list in self.street_nodes.values():
+            self.street_nodes_set.update(node_list)
         # collect the coordinates of all street nodes in a dict
         self.node_coords = {}
-        for node in self.street_nodes:
+        for node in self.street_nodes_set:
             if not node in self.node_coords.keys():
                 if (node in node_coords.keys()):
                     self.node_coords[node] = node_coords[node]
@@ -102,7 +103,7 @@ class Streets(object):
         stat_row = self.street_data.loc[stat_idx, :]
         return stat_value, stat_idx, stat_row
 
-    def plot(self, dpi = 200):
+    def plot(self, dpi = 1000):
         counter = 0
         count_file = 0
         plt.rc('lines', linewidth=0.1, color='black')
@@ -110,8 +111,8 @@ class Streets(object):
         fig_plot = fig.add_subplot(1, 1, 1)
         fig_plot.axis([0, 0.5, 0, 0.2])
         fig_plot.axis('off')
-        node_total = len(self.street_nodes)
-        print('========================= NODE TOTAL: %s' % node_total)
+        street_total = len(self.street_nodes)
+        print('========================= NODE TOTAL: %s' % street_total)
         # get current time
         time_now = time.strftime('%d.%m.%Y_%H.%M.%S')
         for street_id in self.street_nodes:
@@ -136,13 +137,14 @@ class Streets(object):
                 fig_plot.axis([0, 0.5, 0, 0.2])
                 count_file +=1
                 counter = 0
-            processed_nodes_count = counter + (count_file * 10000)
-            print('>>>>> PROCESSED: %s' % processed_nodes_count)
-            if processed_nodes_count == node_total:
+            processed_streets_count = counter + (count_file * 10000)
+            print('>>>>> PROCESSED: %s' % processed_streets_count)
+            if processed_streets_count == street_total:
                 fig.savefig( ('street-layer_%s_%s.png' % (time_now, count_file)),
                                 dpi = dpi, linewith = 1, frameon=False, transparent = False )   # bbox_inches='tight'
                 plt.close()
                 break
+        print('\nThere are %s different street types' % len(self.street_types))
         self.merge_plots(time_now, count_file)
 
     def merge_plots(self, time_now, count_file):
@@ -170,9 +172,6 @@ class Streets(object):
         # paste all images into the first
         src0.paste(src10, (0, 0), src10)
         src0.save('NEW_PASTE_%s.png' % time_now)
-        # alternatively do the same with merge command
-        srcNEW  = Image.merge('RGB', (src0, src1, src2, src3, src4, src5, src6, src7, src8, src9, src10))
-        srcNEW.save('NEW_MERGE_%s.png' % time_now)
 
     def get_oneway_quota(self, street_type = None):
         if not street_type:
@@ -190,26 +189,31 @@ class Streets(object):
 if __name__== '__main__':
 
     ###DEBUG
-    import pdb
+    #import pdb
 
     from Data import Data
     new_data = Data(csv_dir='./csv/')
 
     bounds, streets, node_coords = new_data.get_streets()
-    print('bounds:')
-    print(bounds)
-    print('streets:')
-    print({k: streets[k] for k in list(streets.keys())[:6]})
-    print('node set length:')
-    print(len(street_nodes_set))
-    print('node coords:')
-    print({k: node_coords[k] for k in list(node_coords.keys())[:6]})
 
-    ###DEBUG
-    pdb.set_trace()
+    ###TODO
+    #street_nodes = node_coords
 
     test = Streets(bounds, streets, node_coords, add_length = True)
     #test_part = {k: test.street_nodes[k] for k in list(test.street_nodes.keys())[:10]}
+
+
+    print('\nbounds:')
+    print(bounds)
+    print('\nstreet_nodes:')
+    print({k: test.street_nodes[k] for k in list(test.street_nodes.keys())[:10]})
+    print('\nstreet node set length:')
+    print(len(test.street_nodes_set))
+    print('\nnode coords:')
+    print({k: test.node_coords[k] for k in list(test.node_coords.keys())[:10]})
+
+    ###DEBUG
+    #pdb.set_trace()
 
     print(test.street_data.head(10))
     print('\nMin:')
@@ -222,7 +226,7 @@ if __name__== '__main__':
     print(test.analyze_street_lengths('max', street_type='residential'))
 
     ###DEBUG
-    pdb.set_trace()
+    #pdb.set_trace()
 
     test.plot()
 
