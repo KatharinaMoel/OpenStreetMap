@@ -142,6 +142,7 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
                         case_dict = postal_areas
 
                     if not test_func:
+                        print('No test func!')
                         continue
 
                     if event == "start":
@@ -185,12 +186,13 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
                                     streets[id] = info + way_nodes
                                     # collect all nodes which are defining a street in the street_nodes set
                                     street_nodes_set.update(set(way_nodes))
+                                    print('Length street_nodes_set: %s' % len(street_nodes_set))
                                     if csv_output:
                                         street_csv.writerow(list(output[1:]))
                                 # otherwise save only its nodes in ways dict
-                                else:
-                                    ways[id] = way_nodes
-                                    print(list([id] + list(way_nodes)))
+                                ways[id] = way_nodes
+                                print(list([id] + list(way_nodes)))
+                                print('Length ways dict: %s' % len(ways))
                             # in case of a relation tag: get the bounding ways (ids) of an postal area and save it to the postal_areas dict
                             elif case_dict == postal_areas:
                                 postal_code = output[0]
@@ -201,10 +203,11 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
                                 postal_areas[postal_code] = postal_ways
                                 # collect all ways which are defining a postal area in the area_ways set
                                 area_ways_set.update(set(postal_ways))
+                                print('Length area_ways_set: %s' % len(area_ways_set))
                                 if csv_output:
                                     area_csv.writerow(list(output))
 
-                            print('\t \t \t NEW POS: \t %s' % read_file.tell())
+                            #print('\t \t \t NEW POS: \t %s' % read_file.tell())
 
                 # delete elements only when we parsed them completely (including all its children)
                 if relevancy_level == 0:
@@ -218,28 +221,52 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
 
         # save only coordinates of those nodes that are part of a street (and optional save it to file)
         street_nodes = { node_id: nodes[node_id] for node_id in street_nodes_set }
+        print('\nstreet_nodes keys:')
+        print(list(street_nodes.keys())[:10])
+        print('\nstreet_nodes items:')
+        print(list(street_nodes.items())[:10])
+        print('\nstreet_nodes_set:')
+        print(list(street_nodes_set)[:10])
         street_nodes_set.clear()
         if csv_output:
             for (node_id, coords) in street_nodes.items():
                 street_node_csv.writerow([node_id] + list(coords) )
 
         ###DEBUG
-        pdb.set_trace()
+        #pdb.set_trace()
 
         # save only coordinates of those nodes that are defining a postal area boundary (and optional save it to file)
-        print('ways keys:')
+        print('\nways keys:')
         print(list(ways.keys())[:10])
-        print('ways items:')
+        print('\nways items:')
         print(list(ways.items())[:10])
-
-        area_ways = { way_id: ways[way_id] for way_id in area_ways_set }
+        print('\narea ways set:')
+        print(list(area_ways_set)[:10])
+        print('\nAre some 100 way_ids out of area_ways_set keys to ways dict?')
+        subset = list(area_ways_set)[:100]
+        for way_id in subset:
+            print(way_id in ways)
+        area_ways_set_2 = set()
+        for way_list in postal_areas.values():
+            area_ways_set_2.update(way_list)
+        print('\nDiffer area_ways_set and area_ways_set_2?')
+        differ_set = area_ways_set_2.symmetric_difference(area_ways_set)
+        print(differ_set)
+        print('\nIs area_ways_set subset of area_ways_set_2?')
+        print(area_ways_set <= area_ways_set_2)
+        print('\nIs area_ways_set2 subset of area_ways_set?')
+        print(area_ways_set_2 <= area_ways_set)
+        area_ways = { way_id: ways[way_id] for way_id in area_ways_set if way_id in ways}
+        print('\narea ways:')
+        print({k: area_ways[k] for k in list(area_ways.keys())[:6]})
         area_ways_set.clear()
-
-        print('nodes items:')
-        print(list(nodes.items())[:10])
+        print('\narea ways still there after delete of area_ways_set?')
+        print({k: area_ways[k] for k in list(area_ways.keys())[:6]})
+        print('\narea ways items:')
+        print(list(area_ways.items())[:10])
 
         ###DEBUG
-        pdb.set_trace()
+        #pdb.set_trace()
 
         # get all nodes that define some postal area in a set
         area_nodes_set = set()
@@ -247,36 +274,70 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
             area_nodes_set.update(node_list)
         area_ways.clear()
 
+        ###DEBUG
+        #pdb.set_trace()
+
+        print('\nNodes keys:')
+        print(list(nodes.keys())[:10])
+        print('\nNodes items:')
+        print(list(nodes.items())[:10])
+        print('\narea nodes set:')
+        print(list(area_nodes_set)[:10])
+        print('\nAre some 50 way_ids out of area_nodes_set keys to nodes dict?')
+        n_subset = list(area_nodes_set)[:20]
+        for node_id in n_subset:
+            print(node_id in nodes)
         # collect coordinates to all area nodes in dict
-        area_nodes = { node_id: nodes[node_id] for node_id in area_nodes_set }
+        area_nodes = { node_id: nodes[node_id] for node_id in area_nodes_set if node_id in nodes}
+        print('\narea_nodes keys:')
+        print(list(area_nodes.keys())[:10])
+        print('\narea_nodes items:')
+        print(list(area_nodes.items())[:10])
+        print('\narea_nodes_set:')
+        print(list(area_nodes_set)[:10])
         area_nodes_set.clear()
         if csv_output:
             for (node_id, coords) in area_nodes.items():
                 area_node_csv.writerow([node_id] + list(coords))
 
         ###DEBUG
-        pdb.set_trace()
+        #pdb.set_trace()
 
         # for each postal_code area save all its defining node coords in two dicts (separately for all its lat resp. lon coordinates)
         # form will be e. g. area_lats = { ..., postal_code1: [node1_lat, node2_lat, ..], ...}
         area_lats = {}
         area_lons = {}
+        print('\nLength postal areas dict: %s' % len(postal_areas))
         for postal_code in postal_areas.keys():
+            print('\t\tNew Postal code: %s' % postal_code)
             postal_node_lats = []
             postal_node_lons = []
             for way_id in postal_areas[postal_code]:
-                way_lats = []
-                way_lons = []
-                for node_id in ways[way_id]:
-                    node_lat, node_lon = nodes[node_id]
-                    way_lats.append(np.float_(node_lat))
-                    way_lons.append(np.float_(node_lon))
-            area_lats[postal_code] = way_lats
-            area_lons[postal_code] = way_lons
+                ##TODO refactor
+                if way_id in postal_areas:
+                    way_lats = []
+                    way_lons = []
+                    for node_id in ways[way_id]:
+                        if node_id in nodes:
+                            node_lat, node_lon = nodes[node_id]
+                            way_lats.append(np.float_(node_lat))
+                            print('\t\t\tLength way_lats: %s' % len(way_lats))
+                            way_lons.append(np.float_(node_lon))
+                            print('\t\t\tLength way_lons: %s' % len(way_lons))
+                        else:
+                            print('Node %s NOT in ways[%s].' %(node_id, way_id))
+                    postal_node_lats += list(way_lats)
+                    print('\t\tLength postal_node_lats: %s' % len(postal_node_lats))
+                    postal_node_lons += list(way_lons)
+                    print('\t\tLength postal_node_lons: %s' % len(postal_node_lons))
+            area_lats[postal_code] = postal_node_lats
+            area_lons[postal_code] = postal_node_lons
+            print('\nLength area_lats: %s' % len(area_lats))
+            print('Length area_lons: %s' % len(area_lons))
 
             if csv_output:
-                area_lat_csv.writerow([postal_code] + list(way_lats))
-                area_lon_csv.writerow([postal_code] + list(way_lons))
+                area_lat_csv.writerow( [postal_code] + list(area_lats[postal_code]) )
+                area_lon_csv.writerow( [postal_code] + list(area_lons[postal_code]) )
 
         # close all opened files
         if csv_output:
