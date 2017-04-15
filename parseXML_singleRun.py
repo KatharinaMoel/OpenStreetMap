@@ -305,16 +305,16 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
 
         # for each postal_code area save all its defining node coords in two dicts (separately for all its lat resp. lon coordinates)
         # form will be e. g. area_lats = { ..., postal_code1: [node1_lat, node2_lat, ..], ...}
-        area_lats = {}
-        area_lons = {}
+        #area_lats = {}
+        #area_lons = {}
         print('\nLength postal areas dict: %s' % len(postal_areas))
         for postal_code in postal_areas.keys():
-            print('\t\tNew Postal code: %s' % postal_code)
+            print('\nNew Postal code: %s' % postal_code)
             postal_node_lats = []
             postal_node_lons = []
             for way_id in postal_areas[postal_code]:
                 ##TODO refactor
-                if way_id in postal_areas:
+                if way_id in ways:
                     way_lats = []
                     way_lons = []
                     for node_id in ways[way_id]:
@@ -325,15 +325,19 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
                             way_lons.append(np.float_(node_lon))
                             print('\t\t\tLength way_lons: %s' % len(way_lons))
                         else:
-                            print('Node %s NOT in ways[%s].' %(node_id, way_id))
-                    postal_node_lats += list(way_lats)
+                            print('\t\tNode %s NOT in ways[%s].' %(node_id, way_id))
+                    #postal_node_lats += list(way_lats)
+                    postal_node_lats = list(postal_node_lats) + list(way_lats)
                     print('\t\tLength postal_node_lats: %s' % len(postal_node_lats))
-                    postal_node_lons += list(way_lons)
+                    #postal_node_lons += list(way_lons)
+                    postal_node_lons = list(postal_node_lons) + list(way_lons)
                     print('\t\tLength postal_node_lons: %s' % len(postal_node_lons))
             area_lats[postal_code] = postal_node_lats
             area_lons[postal_code] = postal_node_lons
             print('\nLength area_lats: %s' % len(area_lats))
             print('Length area_lons: %s' % len(area_lons))
+            print('\nArea_lats dict:')
+            print({k: area_lats[k] for k in list(area_lats.keys())[:10]})
 
             if csv_output:
                 area_lat_csv.writerow( [postal_code] + list(area_lats[postal_code]) )
@@ -350,7 +354,7 @@ def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
             area_lon_file.close()
 
         # return required data
-        return bounds, cameras, street_nodes_dict, streets, postal_areas, area_nodes, area_lats, area_lons
+        return bounds, cameras, street_nodes, streets, postal_areas, area_nodes, area_lats, area_lons
 
     except MemoryError:
         print('Out of Memory.')
