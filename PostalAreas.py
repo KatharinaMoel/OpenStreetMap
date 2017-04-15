@@ -109,6 +109,10 @@ class PostalAreas(object):
         # only remaining case is that the rays intersect
         return True
 
+    def get_camera_count(self, postal_code):
+        cams = self.cams_to_areas[postal_code]
+        return len(cams)
+
 
 #############################################################################################################################
 
@@ -139,7 +143,7 @@ if __name__ == '__main__':
 
     some_postal_codes = list(test.areas.keys())[:20]
 
-    for i in range(3): #range(len(some_postal_codes)):   #range(10):
+    for i in range(3):
         current_postal = some_postal_codes[i]
         cams_to_cube = test.get_cams_to_cube(current_postal)
         print('\nPostal Code: %s' % current_postal)
@@ -149,14 +153,14 @@ if __name__ == '__main__':
     some_cameras = list(test.cameras.index)[:3]
     print('Some cameras:')
     print(some_cameras)
-    for i in range(3): #range(len(some_postal_codes)):   #range(10):
+    for i in range(3):
         current_cam = some_cameras[i]
         cubes_to_cam = test.get_cubes_to_cam(current_cam)
         print('\nCam: %s' % current_cam)
         print('Cubes to Cam:')
         print(cubes_to_cam)
 
-    for i in range(20): #range(len(some_postal_codes)):   #range(10):
+    for i in range(20):
         current_postal = some_postal_codes[i]
         cams_to_area = test.get_cams_to_area(current_postal)
         print('\nPostal Code: %s' % current_postal)
