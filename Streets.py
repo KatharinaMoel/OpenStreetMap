@@ -26,10 +26,6 @@ class Streets(object):
             if not node in self.node_coords.keys():
                 if (node in node_coords.keys()):
                     self.node_coords[node] = node_coords[node]
-                else:
-                    print('... Node not in input node_coords!')
-            else:
-                print('NODE already in node coords!!')
         # save min/ max coordinates of the map excerpt
         self.minlat, self.minlon =  np.float_(bounds['minlat']), np.float_(bounds['minlon'])
         self.maxlat, self.maxlon =  np.float_(bounds['maxlat']), np.float_(bounds['maxlon'])
@@ -56,7 +52,6 @@ class Streets(object):
             if node_id in self.node_coords:
                 node_lat, node_lon = self.node_coords[node_id]
             else:
-                print('NO NODE ID in Node Coords: %s' %node_id)
                 node_lat, node_lon = 0, 0
             if as_lists:
                 lat_coords.append(node_lat)
@@ -92,23 +87,27 @@ class Streets(object):
         else:
             # use only list of streets that are of the given type
             assert(street_type in self.street_types)
-            print('\nstreet types:\n')
-            print(self.street_types)
             length_data = self.street_data.loc[ self.street_data['type'] == street_type ]['lengths']
         # compute desired statistic
         if stat == 'median':
-            return length_data.median()
+            result = length_data.median()
+            print('The median of street lengths is %s.\n' %result)
+            return result
         if stat == 'average':
-            return length_data.mean()
+            result = length_data.mean()
+            print('The average of street lengths is %s.\n' %result)
+            return result
         if stat == 'max':
             stat_idx = length_data.idxmax()
         if stat == 'min':
             stat_idx = length_data.idxmin()
         stat_value = length_data[stat_idx]
         stat_row = self.street_data.loc[stat_idx, :]
+        print('\nThe result of computing %s of street lengths is %s.\n' %(stat, stat_value))
         return stat_value, stat_idx, stat_row
 
     def plot(self, street_type = None, dpi = 200):
+        print('\nPlotting streets...')
         counter = 0
         count_file = 0
         plt.rc('lines', linewidth=0.1, color='black')
@@ -123,11 +122,10 @@ class Streets(object):
         else:
             street_nodes = self.street_nodes
         street_total = len(street_nodes)
-        print('========================= STREET TOTAL: %s' % street_total)
         # get current time
         time_now = time.strftime('%d.%m.%Y_%H.%M.%S')
         # set paths of the temporary directory to store single images
-        out_dir = os.path.join('./', 'images')
+        out_dir = os.path.join('./', 'images/')
         print('outdir:\t %s' % out_dir)
         if not os.path.isdir(out_dir):
             os.mkdir(out_dir)
@@ -136,13 +134,11 @@ class Streets(object):
             x_coords = []
             y_coords = []
             for (lat, lon) in self.get_street_coords(street_id):
-                print((lat, lon))
                 (y_0, x_0) = (np.float_(lat) - self.minlat, np.float_(lon) - self.minlon)
                 x_coords.append(x_0)
                 y_coords.append(y_0)
                 # compute back lists of separate coords
                 fig_plot.plot(x_coords , y_coords, color = 'k')
-                print(counter)
             if counter >= 10000:
                 plt.savefig( (os.path.join('./images/', 'street-layer_%s_%s.png' % (time_now, count_file))),
                                 dpi = dpi, linewith = 1, frameon=False, transparent = True)
@@ -154,50 +150,25 @@ class Streets(object):
                 count_file +=1
                 counter = 0
             processed_streets_count = counter + (count_file * 10000)
-            print('>>>>> PROCESSED: %s' % processed_streets_count)
             if processed_streets_count == street_total:
                 fig.savefig( (os.path.join('./images/','street-layer_%s_%s.png' % (time_now, count_file))),
                                 dpi = dpi, linewith = 1, frameon=False, transparent = False )   # bbox_inches='tight'
                 plt.close()
                 break
-        print('\nThere are %s different street types' % len(self.street_types))
         self.merge_plots(time_now, count_file)
+        print("Saving street image to file 'Streets_%s.png'..." % time_now)
         for k in range(count_file + 1):
-            print('k: %s' %k)
             current_file = os.path.join('./images/','street-layer_%s_%s.png' % (time_now, k))
-            print(current_file)
-            if os.path.exists(current_file):
-                print('File exists. Remove...')
-                os.remove(current_file)
-
+            #if os.path.exists(current_file):
+            #    os.remove(current_file)
+        print('Done.')
 
     def merge_plots(self, time_now, count_file):
         # open images
         src0 = Image.open(os.path.join('./images/','street-layer_%s_%s.png' % (time_now, count_file)))
-
         for k in range(count_file - 1):
             src1 = Image.open('street-layer_%s_%s.png' % (time_now, k))
             src0.paste(src1, (0, 0), src1)
-        '''
-        src2 = Image.open('street-layer_%s_2.png' % time_now)
-        src0.paste(src2, (0, 0), src2)
-        src3 = Image.open('street-layer_%s_3.png' % time_now)
-        src0.paste(src3, (0, 0), src3)
-        src4 = Image.open('street-layer_%s_4.png' % time_now)
-        src0.paste(src4, (0, 0), src4)
-        src5 = Image.open('street-layer_%s_5.png' % time_now)
-        src0.paste(src5, (0, 0), src5)
-        src6 = Image.open('street-layer_%s_6.png' % time_now)
-        src0.paste(src6, (0, 0), src6)
-        src7 = Image.open('street-layer_%s_7.png' % time_now)
-        src0.paste(src7, (0, 0), src7)
-        src8 = Image.open('street-layer_%s_8.png' % time_now)
-        src0.paste(src8, (0, 0), src8)
-        src9 = Image.open('street-layer_%s_9.png' % time_now)
-        src0.paste(src9, (0, 0), src9)
-        src10 = Image.open('street-layer_%s_0.png' % time_now)
-        # paste all images into the first
-        src0.paste(src10, (0, 0), src10)'''
         src0.save(os.path.join('./images/', 'Streets_%s.png' % time_now))
 
     def get_oneway_quota(self, street_type = None):
@@ -207,56 +178,64 @@ class Streets(object):
             assert(street_type in self.street_types)
             oneway_data = self.street_data.loc[self.street_data['type'] == street_type]['is_oneway']
         total_number = len(oneway_data)
-        oneway_number = pd.to_numeric(oneway_data).sum()
+        # depending on the used pandas version, two different functions must be called to convert values of oneway_data to int
+        if pd.__version__ < str(0.17):
+            oneway_number = oneway_data.convert_objects(convert_numeric=True).sum()
+        else:
+            oneway_number = pd.to_numeric(oneway_data).sum()
         quota = oneway_number / total_number
-        print('Oneway quota is %s %' % quota*100).
+        print('Oneway quota is %s %%.\n' % (quota*100))
         print('The total count of oneway streets is %s out of %s streets in total.' %(oneway_number, total_number))
         return quota, oneway_number, total_number
+
+    def run_streets(self, print_types, stat, street_type, plot, dpi, oneway):
+        if street_type:
+            print('\nChosen street_type is %s' %street_type)
+        else:
+            print('\nStreet type will refer to all streets.\n')
+        if print_types:
+            self.print_street_types()
+        if stat:
+            if not stat in ['max', 'min', 'median', 'average']:
+                print("Given statistic %s is not valid. Use one of 'max', 'min', 'mean', 'average'.\n")
+            self.analyze_street_lengths(stat, street_type)
+        if plot:
+            self.plot(street_type, dpi)
+        if oneway:
+            self.get_oneway_quota(street_type)
 
 #############################################################################################################################
 
 if __name__== '__main__':
 
-    ###DEBUG
-    #import pdb
+        from Data import Data
+        new_data = Data(csv_dir='./csv/')
+        bounds, streets, node_coords = new_data.get_streets()
+        new_streets = Streets(bounds, streets, node_coords, add_length = True)
 
-    from Data import Data
-    new_data = Data(csv_dir='./csv/')
+        print('MAIN FUNCTION !!!')
+        print('\nbounds:')
+        print(bounds)
+        print('\nstreet_nodes:')
+        print({k: new_streets.street_nodes[k] for k in list(new_streets.street_nodes.keys())[:10]})
+        print('\nstreet node set length:')
+        print(len(new_streets.street_nodes_set))
+        print('\nnode coords:')
+        print({k: new_streets.node_coords[k] for k in list(new_streets.node_coords.keys())[:10]})
+        print(new_streets.street_data.head(10))
+        print('\nMin:')
+        print(new_streets.analyze_street_lengths('min'))
+        print('\nAverage:')
+        print(new_streets.analyze_street_lengths('average'))
+        print('\nAverage RESIDENTIAL:')
+        print(new_streets.analyze_street_lengths('average', street_type='residential'))
+        print('\nMax RESIDENTIAL')
+        print(new_streets.analyze_street_lengths('max', street_type='residential'))
+        print('\n\n')
+        print(new_streets.get_oneway_quota())
+        print('\n\n')
 
-    bounds, streets, node_coords = new_data.get_streets()
+        new_streets.plot(street_type='secondary')
 
-    ###TODO
-    #street_nodes = node_coords
-
-    test = Streets(bounds, streets, node_coords, add_length = True)
-    #test_part = {k: test.street_nodes[k] for k in list(test.street_nodes.keys())[:10]}
-
-
-    print('\nbounds:')
-    print(bounds)
-    print('\nstreet_nodes:')
-    print({k: test.street_nodes[k] for k in list(test.street_nodes.keys())[:10]})
-    print('\nstreet node set length:')
-    print(len(test.street_nodes_set))
-    print('\nnode coords:')
-    print({k: test.node_coords[k] for k in list(test.node_coords.keys())[:10]})
-
-    ###DEBUG
-    #pdb.set_trace()
-
-    print(test.street_data.head(10))
-    print('\nMin:')
-    print(test.analyze_street_lengths('min'))
-    print('\nAverage:')
-    print(test.analyze_street_lengths('average'))
-    print('\nAverage RESIDENTIAL:')
-    print(test.analyze_street_lengths('average', street_type='residential'))
-    print('\nMax RESIDENTIAL')
-    print(test.analyze_street_lengths('max', street_type='residential'))
-
-    ###DEBUG
-    #pdb.set_trace()
-
-    test.plot(street_type='secondary')
 
 

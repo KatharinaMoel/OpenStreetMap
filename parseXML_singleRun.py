@@ -6,7 +6,7 @@ import time
 import xml.etree.ElementTree as et  # for reading the xml file
 import numpy as np
 ###DEBUG
-import pdb
+#import pdb
 
 def collect_data(FILE = 'map.xml', csv_output = True, max_size = 1000000):
     '''

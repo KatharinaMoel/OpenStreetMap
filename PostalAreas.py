@@ -120,8 +120,17 @@ class PostalAreas(object):
             cam_count = self.get_camera_count(postal_code)
             cam_counts[postal_code] = cam_count
         cam_counts_series = pd.Series(cam_counts).order(ascending=False) #.sort(ascending = False)
+        print('\nThe cam counts are listed here:')
         print(cam_counts_series.to_string())
 
+    def run_postals(self, cam_counts, postal_area):
+        if cam_counts:
+            self.get_camera_counts()
+        if postal_area:
+            assert(postal_area in self.areas.keys()), 'Given postal area is no valid postal code.'
+            cams = self.get_cams_to_area(postal_area)
+            print('The camera IDs of the given postal area %s are:')
+            print(cams)
 
 #############################################################################################################################
 
