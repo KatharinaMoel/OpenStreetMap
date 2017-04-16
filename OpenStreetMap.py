@@ -1,5 +1,4 @@
 import argparse
-import os.path
 
 def parse_args(args):
     if args.command in ['parseXML', 'pa', 'parse']:
@@ -89,4 +88,3 @@ postal_parser.add_argument('--cams_to_area', '--area', '-a', default=None, help=
 if __name__ == '__main__':
     args = parser.parse_args()
     parse_args(args)
-    #args.func(args)
