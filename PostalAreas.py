@@ -52,7 +52,7 @@ class PostalAreas(object):
         for cam_id in self.get_cams_to_cube(postal_code):
             cubes_to_cam = self.get_cubes_to_cam(cam_id)
             if len(cubes_to_cam) == 1:
-                print('Camera has unique postal code cube, so it must be the postal area!')
+                #print('Camera has unique postal code cube, so it must be the postal area!')
                 cams_in_area.append(cam_id)
             else:
                 # cam coordinates for testing whether cam is in the area
@@ -129,7 +129,7 @@ class PostalAreas(object):
         if postal_area:
             assert(postal_area in self.areas.keys()), 'Given postal area is no valid postal code.'
             cams = self.get_cams_to_area(postal_area)
-            print('The camera IDs of the given postal area %s are:')
+            print('The camera IDs of the given postal area %s are:' % postal_area)
             print(cams)
 
 #############################################################################################################################

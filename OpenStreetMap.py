@@ -37,7 +37,7 @@ def parse_args(args):
         if not any([cam_counts, postal_area]):
             print("\nPlease specify at least one of the options of '--cam_counts', '--cams_to_area'.\n")
             exit(1)
-        postals_program(cam_counts, postal_area)
+        postals_program(csv_dir,cam_counts, postal_area)
 
 def parseXML_program(xml_file, size, csv):
     from parseXML_singleRun import collect_data
