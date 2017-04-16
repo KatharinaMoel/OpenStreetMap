@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import time
@@ -36,6 +37,10 @@ class Streets(object):
         if add_length:
             self.street_data['lengths'] = self.street_data.index
             self.street_data['lengths'] = self.street_data['lengths'].apply(lambda x: self.get_street_length(x))
+
+    def print_street_types(self):
+        print('Possible street types are...')
+        print(self.street_types)
 
     def get_street_coords(self, street_id, as_lists = False):
         '''
@@ -103,7 +108,7 @@ class Streets(object):
         stat_row = self.street_data.loc[stat_idx, :]
         return stat_value, stat_idx, stat_row
 
-    def plot(self, dpi = 1000):
+    def plot(self, street_type = None, dpi = 200):
         counter = 0
         count_file = 0
         plt.rc('lines', linewidth=0.1, color='black')
@@ -111,11 +116,22 @@ class Streets(object):
         fig_plot = fig.add_subplot(1, 1, 1)
         fig_plot.axis([0, 0.5, 0, 0.2])
         fig_plot.axis('off')
-        street_total = len(self.street_nodes)
-        print('========================= NODE TOTAL: %s' % street_total)
+        if street_type:
+            assert(street_type in self.street_types)
+            street_ids = list(self.street_data.loc[ self.street_data['type'] == street_type ].index)
+            street_nodes = { id: self.street_nodes[id] for id in street_ids }
+        else:
+            street_nodes = self.street_nodes
+        street_total = len(street_nodes)
+        print('========================= STREET TOTAL: %s' % street_total)
         # get current time
         time_now = time.strftime('%d.%m.%Y_%H.%M.%S')
-        for street_id in self.street_nodes:
+        # set paths of the temporary directory to store single images
+        out_dir = os.path.join('./', 'images')
+        print('outdir:\t %s' % out_dir)
+        if not os.path.isdir(out_dir):
+            os.mkdir(out_dir)
+        for street_id in street_nodes:
             counter += 1
             x_coords = []
             y_coords = []
@@ -128,7 +144,7 @@ class Streets(object):
                 fig_plot.plot(x_coords , y_coords, color = 'k')
                 print(counter)
             if counter >= 10000:
-                plt.savefig(('street-layer_%s_%s.png' % (time_now, count_file)),
+                plt.savefig( (os.path.join('./images/', 'street-layer_%s_%s.png' % (time_now, count_file))),
                                 dpi = dpi, linewith = 1, frameon=False, transparent = True)
                 plt.close()
                 fig = plt.figure()
@@ -140,18 +156,29 @@ class Streets(object):
             processed_streets_count = counter + (count_file * 10000)
             print('>>>>> PROCESSED: %s' % processed_streets_count)
             if processed_streets_count == street_total:
-                fig.savefig( ('street-layer_%s_%s.png' % (time_now, count_file)),
+                fig.savefig( (os.path.join('./images/','street-layer_%s_%s.png' % (time_now, count_file))),
                                 dpi = dpi, linewith = 1, frameon=False, transparent = False )   # bbox_inches='tight'
                 plt.close()
                 break
         print('\nThere are %s different street types' % len(self.street_types))
         self.merge_plots(time_now, count_file)
+        for k in range(count_file + 1):
+            print('k: %s' %k)
+            current_file = os.path.join('./images/','street-layer_%s_%s.png' % (time_now, k))
+            print(current_file)
+            if os.path.exists(current_file):
+                print('File exists. Remove...')
+                os.remove(current_file)
+
 
     def merge_plots(self, time_now, count_file):
         # open images
-        src0 = Image.open('street-layer_%s_10.png' % time_now)
-        src1 = Image.open('street-layer_%s_1.png' % time_now)
-        src0.paste(src1, (0, 0), src1)
+        src0 = Image.open(os.path.join('./images/','street-layer_%s_%s.png' % (time_now, count_file)))
+
+        for k in range(count_file - 1):
+            src1 = Image.open('street-layer_%s_%s.png' % (time_now, k))
+            src0.paste(src1, (0, 0), src1)
+        '''
         src2 = Image.open('street-layer_%s_2.png' % time_now)
         src0.paste(src2, (0, 0), src2)
         src3 = Image.open('street-layer_%s_3.png' % time_now)
@@ -170,8 +197,8 @@ class Streets(object):
         src0.paste(src9, (0, 0), src9)
         src10 = Image.open('street-layer_%s_0.png' % time_now)
         # paste all images into the first
-        src0.paste(src10, (0, 0), src10)
-        src0.save('NEW_PASTE_%s.png' % time_now)
+        src0.paste(src10, (0, 0), src10)'''
+        src0.save(os.path.join('./images/', 'Streets_%s.png' % time_now))
 
     def get_oneway_quota(self, street_type = None):
         if not street_type:
@@ -182,6 +209,8 @@ class Streets(object):
         total_number = len(oneway_data)
         oneway_number = pd.to_numeric(oneway_data).sum()
         quota = oneway_number / total_number
+        print('Oneway quota is %s %' % quota*100).
+        print('The total count of oneway streets is %s out of %s streets in total.' %(oneway_number, total_number))
         return quota, oneway_number, total_number
 
 #############################################################################################################################
@@ -228,6 +257,6 @@ if __name__== '__main__':
     ###DEBUG
     #pdb.set_trace()
 
-    test.plot()
+    test.plot(street_type='secondary')
 
 

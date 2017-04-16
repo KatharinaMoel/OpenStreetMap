@@ -45,6 +45,7 @@ class PostalAreas(object):
         for postal_code in cams_to_areas:
             cams_in_area = self.get_cams_to_area(postal_code)
             cams_to_areas[postal_code] = cams_in_area
+        return cams_to_areas
 
     def get_cams_to_area(self, postal_code):
         cams_in_area = []
@@ -113,6 +114,14 @@ class PostalAreas(object):
         cams = self.cams_to_areas[postal_code]
         return len(cams)
 
+    def get_camera_counts(self):
+        cam_counts = {}
+        for postal_code in self.areas:
+            cam_count = self.get_camera_count(postal_code)
+            cam_counts[postal_code] = cam_count
+        cam_counts_series = pd.Series(cam_counts).order(ascending=False) #.sort(ascending = False)
+        print(cam_counts_series.to_string())
+
 
 #############################################################################################################################
 
@@ -166,5 +175,7 @@ if __name__ == '__main__':
         print('\nPostal Code: %s' % current_postal)
         print('Cams to Area:')
         print(cams_to_area)
+
+    test.get_camera_counts()
 
 
