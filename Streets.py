@@ -159,15 +159,15 @@ class Streets(object):
         print("Saving street image to file 'Streets_%s.png'..." % time_now)
         for k in range(count_file + 1):
             current_file = os.path.join('./images/','street-layer_%s_%s.png' % (time_now, k))
-            #if os.path.exists(current_file):
-            #    os.remove(current_file)
+            if os.path.exists(current_file):
+                os.remove(current_file)
         print('Done.')
 
     def merge_plots(self, time_now, count_file):
         # open images
         src0 = Image.open(os.path.join('./images/','street-layer_%s_%s.png' % (time_now, count_file)))
         for k in range(count_file - 1):
-            src1 = Image.open('street-layer_%s_%s.png' % (time_now, k))
+            src1 = Image.open(os.path.join('./images/','street-layer_%s_%s.png' % (time_now, k)))
             src0.paste(src1, (0, 0), src1)
         src0.save(os.path.join('./images/', 'Streets_%s.png' % time_now))
 
