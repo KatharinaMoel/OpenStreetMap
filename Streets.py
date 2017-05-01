@@ -35,7 +35,7 @@ class Streets(object):
             self.street_data['lengths'] = self.street_data['lengths'].apply(lambda x: self.get_street_length(x))
 
     def print_street_types(self):
-        print('Possible street types are...')
+        print('Possible street types are...\n')
         print(self.street_types)
 
     def get_street_coords(self, street_id, as_lists = False):
@@ -162,6 +162,7 @@ class Streets(object):
             if os.path.exists(current_file):
                 os.remove(current_file)
         print('Done.')
+        return os.path.join('./images/', 'Streets_%s.png' % time_now)
 
     def merge_plots(self, time_now, count_file):
         # open images
@@ -188,7 +189,7 @@ class Streets(object):
         print('The total count of oneway streets is %s out of %s streets in total.' %(oneway_number, total_number))
         return quota, oneway_number, total_number
 
-    def run_streets(self, print_types, stat, street_type, plot, dpi, oneway):
+    def run_streets(self, print_types=None, stat=None, street_type=None, plot=False, dpi=None, oneway=False):
         if street_type:
             print('\nChosen street_type is %s' %street_type)
         else:

@@ -120,7 +120,7 @@ class PostalAreas(object):
             cam_count = self.get_camera_count(postal_code)
             cam_counts[postal_code] = cam_count
         cam_counts_series = pd.Series(cam_counts).order(ascending=False) #.sort(ascending = False)
-        print('\nThe cam counts are listed here:')
+        print('\nThe cam counts are listed here:\n')
         print(cam_counts_series.to_string())
 
     def run_postals(self, cam_counts, postal_area):
