@@ -1,6 +1,6 @@
 # OpenStreetMap
 
-Requires at least Python 3.4.3, Numpy 1.8.2, Pandas 0.13.1 and matplotlib 1.3.1.
+Requires at least Python 3.4.3, Numpy 1.8.2, Pandas 0.13.1, matplotlib 1.3.1 and (the Python Image Library) PIL 2.3.0.
 
 You can run this program on the command line by 'python3 OpenStreetMap.py' with the following options:
 
