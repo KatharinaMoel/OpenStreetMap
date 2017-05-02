@@ -137,8 +137,7 @@ class Streets(object):
                 (y_0, x_0) = (np.float_(lat) - self.minlat, np.float_(lon) - self.minlon)
                 x_coords.append(x_0)
                 y_coords.append(y_0)
-                # compute back lists of separate coords
-                fig_plot.plot(x_coords , y_coords, color = 'k')
+            fig_plot.plot(x_coords , y_coords, color = 'k')
             if counter >= 10000:
                 plt.savefig( (os.path.join('./images/', 'street-layer_%s_%s.png' % (time_now, count_file))),
                                 dpi = dpi, linewith = 1, frameon=False, transparent = True)
